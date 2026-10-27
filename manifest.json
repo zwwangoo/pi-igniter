@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "id": "local.igniter",
+  "name": "Igniter",
+  "version": "0.1.0",
+  "description": "Keeps a model warm on a schedule: between a daily start and end hour, sends one minimal completion every N minutes through PI-Desktop's own configured provider. Optionally pushes a Bark notification for every ignition, success or failure. Never stores provider credentials.",
+  "author": "zwwangoo",
+  "license": "MIT",
+  "main": "main.js",
+  "engines": {
+    "piDesktop": ">=0.2.0"
+  },
+  "activationEvents": [
+    "onStartup",
+    "onCommand:igniter.open"
+  ],
+  "permissions": [
+    "ui.panel",
+    "background.service",
+    "agent.complete",
+    "models.list",
+    "notify",
+    "net.fetch",
+    "net.anyHost"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "id": "igniter.open",
+        "title": "Igniter: Open Panel",
+        "keywords": [
+          "igniter",
+          "ignite",
+          "activation",
+          "keepalive",
+          "warmup",
+          "点火",
+          "激活",
+          "保活"
+        ],
+        "category": "Automation"
+      }
+    ],
+    "services": [
+      {
+        "id": "igniter-scheduler",
+        "label": "Ignition scheduler"
+      }
+    ]
+  },
+  "ui": {
+    "panel": "renderer/index.html",
+    "width": 560,
+    "height": 760,
+    "title": {
+      "en": "Igniter",
+      "zh-CN": "点火器"
+    }
+  },
+  "i18n": {
+    "en": {
+      "name": "Igniter",
+      "description": "Sends one minimal completion every N minutes inside a daily time window, using a provider and model you already configured in PI-Desktop, and optionally pushes each ignition result to Bark.",
+      "safetyNotes": "Uses only the host agent.complete API, so provider credentials never reach the plugin. Network access is limited to the Bark URL you enter in the panel (net.fetch with net.anyHost, since a self-hosted server cannot be named in a manifest); no other host is contacted. No file permission. Configuration and history stay in the plugin data directory."
+    },
+    "zh-CN": {
+      "name": "点火器",
+      "description": "在每天的起止时段内，每隔 N 分钟用 PI-Desktop 已配置的提供商和模型发一次最小补全，保持窗口活跃；可把每次点火成功或失败推送到 Bark。",
+      "safetyNotes": "只调用宿主的 agent.complete，插件拿不到你的 API 密钥。网络访问仅限你在面板里填写的 Bark 服务器地址（net.fetch + net.anyHost，因为自建服务器地址无法预先写进清单）；不访问其它主机。不申请文件权限。配置与历史只保存在插件自己的数据目录中。"
+    }
+  },
+  "safetyNotes": "Uses the host agent.complete API, so provider credentials stay inside the host. Network access is limited to the Bark server URL you type in the panel (net.fetch with net.anyHost, because no manifest can name a self-hosted server ahead of time); no other host is contacted. No file access. Configuration and history stay in the plugin's own data directory."
+}

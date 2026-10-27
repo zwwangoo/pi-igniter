@@ -1,0 +1,16 @@
+{
+  "name": "pi-igniter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scheduled keep-alive ignition for a provider/model configured in PI-Desktop",
+  "author": "zwwangoo",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node test/scheduling.test.js && node test/host.test.js && node test/panel.test.js && node test/panel.integration.test.js && node test/manifest.test.js",
+    "check": "node test/manifest.test.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

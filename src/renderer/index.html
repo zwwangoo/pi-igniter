@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="zh-CN" data-base="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Igniter</title>
+    <style>
+      :root {
+        --bg: #16181d;
+        --card: #1e2128;
+        --card-2: #24272f;
+        --line: #303540;
+        --text: #e7e9ee;
+        --muted: #98a0ae;
+        --accent: #4f8cff;
+        --ok: #35c46b;
+        --warn: #f2b03d;
+        --bad: #ef5f5f;
+      }
+      html[data-base="light"] {
+        --bg: #f4f6fa;
+        --card: #ffffff;
+        --card-2: #f0f3f8;
+        --line: #dde3ec;
+        --text: #1d2230;
+        --muted: #6a7383;
+        --accent: #2f6bdd;
+        --ok: #1a9d52;
+        --warn: #b8790c;
+        --bad: #cc3b3b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0 16px 20px;
+        background: var(--bg);
+        color: var(--text);
+        font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0 12px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+      .pill {
+        margin-left: auto;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 600;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        background: var(--card);
+        white-space: nowrap;
+      }
+      .pill.on {
+        color: #fff;
+        background: var(--ok);
+        border-color: transparent;
+      }
+      .pill.wait {
+        color: #241a00;
+        background: var(--warn);
+        border-color: transparent;
+      }
+      .pill.off {
+        color: var(--muted);
+      }
+      .pill.bad {
+        color: #fff;
+        background: var(--bad);
+        border-color: transparent;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      .row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .k {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 11.5px;
+        margin-top: 2px;
+      }
+      .switch {
+        position: relative;
+        flex: none;
+        width: 38px;
+        height: 22px;
+        margin-top: 1px;
+      }
+      .switch input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        cursor: pointer;
+      }
+      .switch span {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: var(--card-2);
+        border: 1px solid var(--line);
+        transition: background 0.16s ease, border-color 0.16s ease;
+      }
+      .switch span::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: transform 0.16s ease, background 0.16s ease;
+      }
+      .switch input:checked + span {
+        background: var(--accent);
+        border-color: transparent;
+      }
+      .switch input:checked + span::after {
+        transform: translateX(16px);
+        background: #fff;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 14px 0 10px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .grid label span,
+      .full span {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input[type="number"],
+      input[type="text"],
+      select {
+        width: 100%;
+        padding: 7px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--card-2);
+        color: var(--text);
+        font: inherit;
+      }
+      select {
+        appearance: none;
+      }
+      input[type="number"]:focus,
+      input[type="text"]:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .full {
+        margin-bottom: 12px;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text);
+        font-size: 12.5px;
+        margin-bottom: 14px;
+      }
+      .check input {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--accent);
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 7px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--card-2);
+        color: var(--text);
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+        transition: filter 0.12s ease, opacity 0.12s ease;
+      }
+      button:hover {
+        filter: brightness(1.08);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: transparent;
+        color: #fff;
+      }
+      button.ghost {
+        margin-left: auto;
+        background: transparent;
+        color: var(--muted);
+      }
+      .stat {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 5px 0;
+      }
+      .stat strong {
+        font-weight: 600;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat strong.ok {
+        color: var(--ok);
+      }
+      .stat strong.bad {
+        color: var(--bad);
+      }
+      .warn {
+        margin-top: 10px;
+        padding: 9px 11px;
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--warn) 16%, transparent);
+        color: var(--warn);
+        font-size: 12px;
+      }
+      .sec-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 220px;
+        overflow: auto;
+      }
+      li {
+        display: grid;
+        grid-template-columns: 14px 1fr auto;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+      }
+      li:last-child {
+        border-bottom: none;
+      }
+      li .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-top: 6px;
+        background: var(--ok);
+      }
+      li.fail .dot {
+        background: var(--bad);
+      }
+      li .msg {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      li .when {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .empty {
+        color: var(--muted);
+        font-size: 12px;
+        padding: 4px 0;
+      }
+      .bar {
+        height: 3px;
+        border-radius: 2px;
+        background: var(--card-2);
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--accent);
+        transition: width 0.4s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 data-i18n="title">点火器</h1>
+      <span id="pill" class="pill">…</span>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="row">
+          <label class="switch">
+            <input type="checkbox" id="enabled" />
+            <span></span>
+          </label>
+          <div>
+            <div class="k" data-i18n="enable">启用自动点火</div>
+            <div class="hint" data-i18n="enableHint">关闭后不再按计划触发；「立即激活一次」仍然可用</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <label><span data-i18n="start">开始（时）</span><input id="startHour" type="number" min="0" max="23" step="1" /></label>
+          <label><span data-i18n="end">结束（时）</span><input id="endHour" type="number" min="0" max="24" step="1" /></label>
+          <label><span data-i18n="interval">间隔（分钟）</span><input id="intervalMinutes" type="number" min="1" max="1440" step="1" /></label>
+          <label><span data-i18n="delay">延迟（秒）</span><input id="delaySeconds" type="number" min="0" max="3600" step="1" /></label>
+        </div>
+
+        <label class="full"><span data-i18n="model">模型</span><select id="modelKey"></select></label>
+        <div class="hint" data-i18n="modelHint" style="margin: -6px 0 12px">
+          走 PI-Desktop 已配置的提供商，插件拿不到密钥。宿主限制每分钟最多 8 次，所以间隔最小 1 分钟。
+        </div>
+
+        <label class="full"><span data-i18n="bark">Bark 推送地址</span><input id="barkUrl" type="text" placeholder="https://api.day.app/你的key" /></label>
+        <div class="hint" data-i18n="barkHint" style="margin: -6px 0 10px">
+          留空＝不推送。填 https://api.day.app/&lt;key&gt; 即可，插件会自动补标题和正文；也可填含 {title}、{body} 的完整模板。成功与失败各推一条。
+        </div>
+        <div class="actions" style="margin-bottom: 14px">
+          <button id="barkTest" data-i18n="barkTest">测试 Bark 推送</button>
+        </div>
+
+        <label class="check"><input type="checkbox" id="notifyOnCircuit" /><span data-i18n="notify">失败熔断时推送系统通知</span></label>
+
+        <label class="check"><input type="checkbox" id="quietEnabled" /><span data-i18n="quiet">免打扰时段内不发送通知</span></label>
+        <div class="grid" style="margin-top: -6px">
+          <label><span data-i18n="quietStart">免打扰开始（时）</span><input id="quietStartHour" type="number" min="0" max="23" step="1" /></label>
+          <label><span data-i18n="quietEnd">免打扰结束（时）</span><input id="quietEndHour" type="number" min="0" max="24" step="1" /></label>
+        </div>
+        <div class="hint" data-i18n="quietHint" style="margin: -4px 0 14px">
+          不勾选＝不启用。跨夜请让开始大于结束（如 23 点到 7 点）；开始与结束相同视为不启用。免打扰只拦截 Bark 推送与系统通知，面板内的提示和「测试 Bark 推送」不受影响。
+        </div>
+
+        <div class="actions">
+          <button id="save" class="primary" data-i18n="save">保存</button>
+          <button id="fire" data-i18n="fire">立即激活一次</button>
+          <button id="reset" class="ghost" data-i18n="reset">清空记录</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="stat"><span class="k" data-i18n="next">下次触发</span><strong id="next">—</strong></div>
+        <div class="bar"><i id="progress"></i></div>
+        <div class="stat"><span class="k" data-i18n="last">上次结果</span><strong id="last">—</strong></div>
+        <div class="stat"><span class="k" data-i18n="fails">连续失败</span><strong id="fails">0</strong></div>
+        <div class="warn" id="warn" hidden></div>
+      </section>
+
+      <section class="card">
+        <div class="sec-head"><span data-i18n="log">最近记录</span><span id="logCount" class="hint"></span></div>
+        <ul id="log"></ul>
+        <div class="empty" id="logEmpty" data-i18n="noLog">还没有记录</div>
+      </section>
+    </main>
+
+    <script>
+      const I18N = {
+        "zh-CN": {
+          title: "点火器",
+          enable: "启用自动点火",
+          enableHint: "关闭后不再按计划触发；「立即激活一次」仍然可用",
+          start: "开始（时）",
+          end: "结束（时）",
+          interval: "间隔（分钟）",
+          delay: "延迟（秒）",
+          model: "模型",
+          modelHint: "走 PI-Desktop 已配置的提供商，插件拿不到密钥。宿主限制每分钟最多 8 次，所以间隔最小 1 分钟。",
+          notify: "失败熔断时推送系统通知",
+          save: "保存",
+          fire: "立即激活一次",
+          reset: "清空记录",
+          next: "下次触发",
+          last: "上次结果",
+          fails: "连续失败",
+          log: "最近记录",
+          noLog: "还没有记录",
+          saved: "已保存",
+          saveFailed: "保存失败",
+          bark: "Bark 推送地址",
+          barkHint: "留空＝不推送。填 https://api.day.app/<key> 即可，插件自动补标题与正文；也支持含 {title}、{body} 的模板。成功与失败各推一条。",
+          barkTest: "测试 Bark 推送",
+          barkTestOk: "测试推送已送达",
+          barkTestFailed: "测试推送失败",
+          running: "运行中",
+          disabled: "已停用",
+          noModel: "未选择模型",
+          outOfWindow: "时段外",
+          paused: "已暂停",
+          pending: "即将触发",
+          success: "成功",
+          failed: "失败",
+          quiet: "免打扰",
+          quietStart: "免打扰开始（时）",
+          quietEnd: "免打扰结束（时）",
+          quietHint: "不勾选＝不启用。跨夜请让开始大于结束（如 23 点到 7 点）；开始与结束相同视为不启用。免打扰只拦截 Bark 推送与系统通知，面板内的提示和「测试 Bark 推送」不受影响。",
+          rateLimited: "被限流",
+          inFlight: "正在点火…",
+          noModels: "没有可用模型，请先在 PI-Desktop 里配置提供商",
+          pausedUntil: (t) => `已暂停至 ${t}`,
+          nextIn: (t, d) => `${t}（${d}后）`,
+          backoff: (time, n) => `第 ${n} 次失败，将于 ${time} 重试`,
+          rateLimitBackoff: (time, n) => `第 ${n} 次被限流，将于 ${time} 重试`,
+          manual: "手动",
+          barkQuiet: "免打扰未推送",
+          barkFailed: "推送失败",
+          circuit: (t) => `连续失败已达上限，已暂停到 ${t}；也可以点「立即激活一次」手动重试`,
+        },
+        en: {
+          title: "Igniter",
+          enable: "Automatic ignition",
+          enableHint: "Off stops scheduled runs; “Ignite now” still works",
+          start: "Start (hour)",
+          end: "End (hour)",
+          interval: "Interval (min)",
+          delay: "Delay (s)",
+          model: "Model",
+          modelHint: "Uses a provider already configured in PI-Desktop, so the plugin never sees a key. The host allows 8 completions per minute, so one minute is the floor.",
+          notify: "Notify when the circuit trips",
+          save: "Save",
+          fire: "Ignite now",
+          reset: "Clear log",
+          next: "Next run",
+          last: "Last result",
+          fails: "Consecutive failures",
+          log: "Recent runs",
+          noLog: "No runs yet",
+          saved: "Saved",
+          saveFailed: "Save failed",
+          bark: "Bark push URL",
+          barkHint: "Empty turns push off. https://api.day.app/<key> is enough; the plugin appends the title and body. A template containing {title} and {body} also works. One push per run, success or failure.",
+          barkTest: "Test Bark push",
+          barkTestOk: "Test push delivered",
+          barkTestFailed: "Test push failed",
+          running: "Running",
+          disabled: "Disabled",
+          noModel: "No model selected",
+          outOfWindow: "Outside window",
+          paused: "Paused",
+          pending: "Due now",
+          success: "ok",
+          quiet: "Quiet hours",
+          quietStart: "Quiet from (hour)",
+          quietEnd: "Quiet until (hour)",
+          quietHint: "Leave the box unchecked to turn this off. For a span across midnight set start above end (for example 23 to 7); equal values mean off. Quiet hours hold back Bark pushes and OS notifications only; the in-app toast and the test push are never silenced.",
+          failed: "failed",
+          rateLimited: "rate limited",
+          inFlight: "Igniting…",
+          noModels: "No models available — configure a provider in PI-Desktop first",
+          pausedUntil: (t) => `paused until ${t}`,
+          nextIn: (t, d) => `${t} (in ${d})`,
+          backoff: (time, n) => `failure ${n}: retrying at ${time}`,
+          rateLimitBackoff: (time, n) => `rate limited ${n}×: retrying at ${time}`,
+          manual: "manual",
+          barkQuiet: "push held (quiet hours)",
+          barkFailed: "push failed",
+          circuit: (t) => `Stopped after repeated failures until ${t}. “Ignite now” still tries once.`,
+        },
+      };
+
+      let locale = "zh-CN";
+      let state = null;
+      let modelsLoaded = false;
+      // modelKey (providerId/modelId) -> the label the model list already uses.
+      let modelLabels = new Map();
+      const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+      /**
+       * The host reports providerId/modelId, and a provider id can be an opaque
+       * UUID. Show the name the settings use instead; when the model is no
+       * longer listed, drop a UUID prefix rather than showing it raw.
+       */
+      function modelName(key) {
+        const raw = String(key || "");
+        if (!raw) return "";
+        const label = modelLabels.get(raw);
+        if (label) return label;
+        const slash = raw.indexOf("/");
+        if (slash < 0) return raw;
+        const provider = raw.slice(0, slash);
+        const modelId = raw.slice(slash + 1);
+        return modelId && UUID.test(provider) ? modelId : raw;
+      }
+      let busy = false;
+
+      const $ = (id) => document.getElementById(id);
+      // Dictionary values are either strings or functions of the values the
+      // caller supplies. A function must be called: rendering it directly puts
+      // its source text on screen.
+      const t = (key, ...args) => {
+        const entry = (I18N[locale] || I18N["zh-CN"])[key];
+        const value = entry === undefined ? key : entry;
+        return typeof value === "function" ? value(...args) : value;
+      };
+
+      function invoke(channel, payload) {
+        return window.pluginBridge.invoke(channel, payload || {});
+      }
+
+      function applyCopy() {
+        document.documentElement.lang = locale;
+        for (const node of document.querySelectorAll("[data-i18n]")) {
+          const key = node.getAttribute("data-i18n");
+          const value = t(key);
+          if (typeof value === "string") node.textContent = value;
+        }
+        render();
+      }
+
+      function applyAppearance(look) {
+        const theme = String((look && (look.theme || look.base)) || "").toLowerCase();
+        document.documentElement.dataset.base = theme.includes("light") ? "light" : "dark";
+        const mapped = String((look && (look.locale || look.language)) || "")
+          .trim()
+          .toLowerCase()
+          .replace(/_/g, "-");
+        const next = mapped === "zh" || mapped.startsWith("zh-") || mapped.includes("hans") ? "zh-CN" : mapped ? "en" : locale;
+        if (next !== locale) {
+          locale = next;
+          applyCopy();
+        }
+      }
+
+      function clock(ms) {
+        const d = new Date(ms);
+        const two = (n) => String(n).padStart(2, "0");
+        return `${two(d.getMonth() + 1)}/${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`;
+      }
+
+      function human(ms) {
+        const total = Math.max(0, Math.round(ms / 1000));
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+        if (h) return `${h}h ${m}m`;
+        if (m) return `${m}m ${s}s`;
+        return `${s}s`;
+      }
+
+      function fillForm() {
+        if (!state) return;
+        const cfg = state.cfg;
+        $("enabled").checked = Boolean(cfg.enabled);
+        $("startHour").value = cfg.startHour;
+        $("endHour").value = cfg.endHour;
+        $("intervalMinutes").value = cfg.intervalMinutes;
+        $("delaySeconds").value = cfg.delaySeconds;
+        $("barkUrl").value = cfg.barkUrl || "";
+        $("notifyOnCircuit").checked = Boolean(cfg.notifyOnCircuit);
+        $("quietEnabled").checked = Boolean(cfg.quietEnabled);
+        $("quietStartHour").value = cfg.quietStartHour;
+        $("quietEndHour").value = cfg.quietEndHour;
+      }
+
+      async function loadModels() {
+        const select = $("modelKey");
+        const answer = await invoke("igniter.models");
+        const models = (answer && answer.models) || [];
+        const current = (state && state.cfg.modelKey) || "";
+        modelLabels = new Map(
+          models.filter((model) => model && model.key).map((model) => [model.key, model.label || model.key])
+        );
+        select.innerHTML = "";
+        if (!models.length) {
+          // Keep showing the saved model rather than a bare placeholder.
+          const option = document.createElement("option");
+          option.value = current;
+          option.textContent = current ? modelName(current) : t("noModels");
+          select.append(option);
+          select.value = current;
+          return;
+        }
+        for (const model of models) {
+          if (!model.key) continue;
+          const option = document.createElement("option");
+          option.value = model.key;
+          option.textContent = model.label;
+          select.append(option);
+        }
+        if (current && !models.some((model) => model.key === current)) {
+          const option = document.createElement("option");
+          option.value = current;
+          option.textContent = current;
+          select.append(option);
+        }
+        select.value = current;
+        modelsLoaded = true;
+      }
+
+      function pill(text, cls) {
+        const node = $("pill");
+        node.textContent = text;
+        node.className = `pill ${cls || ""}`.trim();
+      }
+
+      function render() {
+        if (!state) return;
+        const now = Date.now();
+        const cfg = state.cfg;
+        const rt = state.rt;
+
+        if (state.inFlight) pill(t("inFlight"), "wait");
+        else if (!cfg.enabled) pill(t("disabled"), "off");
+        else if (!cfg.modelKey) pill(t("noModel"), "off");
+        else if (rt.circuitUntil > now) pill(t("paused"), "bad");
+        else if (!state.inWindow) pill(t("outOfWindow"), "off");
+        else if (state.nextDue > now) pill(t("running"), "on");
+        else pill(t("pending"), "wait");
+
+        let nextText = "—";
+        let progress = 0;
+        if (!cfg.enabled) nextText = t("disabled");
+        else if (!cfg.modelKey) nextText = t("noModel");
+        else if (rt.circuitUntil > now) nextText = t("pausedUntil", clock(rt.circuitUntil));
+        else if (state.nextDue > now) {
+          const delta = state.nextDue - now;
+          nextText = t("nextIn", clock(state.nextDue), human(delta));
+          // A backoff is measured against its own length, not the interval.
+          const total = Math.max(1, state.waitTotalMs || state.intervalMinutes * 60000);
+          progress = Math.max(0, Math.min(100, 100 - (delta / total) * 100));
+        } else nextText = t("pending");
+        $("next").textContent = nextText;
+        $("progress").style.width = `${progress}%`;
+
+        const last = $("last");
+        if (rt.lastOk === true) {
+          last.textContent = `${t("success")} · ${rt.lastMs}ms`;
+          last.className = "ok";
+        } else if (rt.lastOk === false) {
+          const label = rt.lastKind === "rate-limit" ? t("rateLimited") : t("failed");
+          last.textContent = `${label} · ${rt.lastError || ""}`;
+          last.className = "bad";
+          last.title = rt.lastError || "";
+        } else {
+          last.textContent = "—";
+          last.className = "";
+        }
+
+        $("fails").textContent = String(rt.failures || 0);
+        $("fails").className = rt.failures ? "bad" : "";
+
+        const warn = $("warn");
+        if (rt.circuitUntil > now) {
+          warn.hidden = false;
+          warn.textContent = t("circuit", clock(rt.circuitUntil));
+        } else if (rt.failures > 0 && rt.retryAt > now) {
+          warn.hidden = false;
+          // Name the actual retry time; a rate limit says so instead of "failure".
+          // Literal keys, so the dictionary checks can see both of them.
+          const retry = clock(rt.retryAt);
+          warn.textContent =
+            rt.lastKind === "rate-limit"
+              ? t("rateLimitBackoff", retry, rt.failures)
+              : t("backoff", retry, rt.failures);
+        } else {
+          warn.hidden = true;
+        }
+
+        const list = $("log");
+        list.innerHTML = "";
+        const entries = Array.isArray(rt.log) ? rt.log : [];
+        $("logEmpty").hidden = entries.length > 0;
+        $("logCount").textContent = entries.length ? `${entries.length}` : "";
+        for (const entry of entries) {
+          const item = document.createElement("li");
+          if (!entry.ok) item.className = "fail";
+          const dot = document.createElement("span");
+          dot.className = "dot";
+          const msg = document.createElement("span");
+          msg.className = "msg";
+          // One line per run: what happened, whether it was a manual press, and
+          // whether the push went out. The record already carries all three.
+          const parts = [];
+          if (entry.ok) {
+            parts.push(modelName(entry.model || cfg.modelKey), `${entry.ms}ms`);
+          } else {
+            if (entry.kind === "rate-limit") parts.push(t("rateLimited"));
+            parts.push(entry.error || "error");
+          }
+          if (entry.reason === "manual") parts.push(t("manual"));
+          if (entry.bark === "quiet") parts.push(t("barkQuiet"));
+          else if (entry.bark && entry.bark !== "ok") parts.push(t("barkFailed"));
+          msg.textContent = parts.join(" · ");
+          msg.title = msg.textContent;
+          const when = document.createElement("span");
+          when.className = "when";
+          when.textContent = clock(entry.t);
+          item.append(dot, msg, when);
+          list.append(item);
+        }
+      }
+
+      async function refresh(rerenderForm = false) {
+        state = await invoke("igniter.get");
+        if (!modelsLoaded) await loadModels();
+        if (rerenderForm) fillForm();
+        render();
+      }
+
+      function toast(message) {
+        window.pluginBridge.invoke("ui.showToast", { message }).catch(() => {});
+      }
+
+      // An empty number box must not reach the plugin as 0: that would silently
+      // rewrite the window while the user is still typing.
+      function numberValue(id) {
+        const raw = String($(id).value).trim();
+        if (!raw) return undefined;
+        const value = Number(raw);
+        return Number.isFinite(value) ? value : undefined;
+      }
+
+      async function save() {
+        const payload = {
+          enabled: $("enabled").checked,
+          barkUrl: $("barkUrl").value,
+          notifyOnCircuit: $("notifyOnCircuit").checked,
+          quietEnabled: $("quietEnabled").checked,
+        };
+        // Until the model list has loaded the select cannot be trusted: it may
+        // be showing a placeholder, and sending that would erase the saved model.
+        if (modelsLoaded) payload.modelKey = $("modelKey").value;
+        // Every number box is optional: an empty one is left out so the stored
+        // value survives while the user is still typing.
+        for (const id of ["startHour", "endHour", "intervalMinutes", "delaySeconds", "quietStartHour", "quietEndHour"]) {
+          const value = numberValue(id);
+          if (value !== undefined) payload[id] = value;
+        }
+        try {
+          state = await invoke("igniter.save", payload);
+          fillForm();
+          render();
+          toast(t("saved"));
+        } catch (error) {
+          // A rejected save used to leave the form silently out of step.
+          const detail = error && error.message ? error.message : String(error);
+          toast(`${t("saveFailed")}: ${detail}`);
+        }
+      }
+
+      async function fireNow() {
+        if (busy) return;
+        busy = true;
+        $("fire").disabled = true;
+        try {
+          const answer = await invoke("igniter.fire");
+          if (answer && answer.entry && answer.entry.skipped === "no-model") toast(t("noModel"));
+          if (answer && answer.state) state = answer.state;
+          render();
+        } finally {
+          busy = false;
+          $("fire").disabled = false;
+        }
+      }
+
+      async function testBark() {
+        $("barkTest").disabled = true;
+        try {
+          // Apply the URL currently in the box first, so the test never runs
+          // against a value the user just replaced.
+          state = await invoke("igniter.save", { barkUrl: $("barkUrl").value });
+          const answer = await invoke("igniter.barkTest");
+          if (answer && answer.state) state = answer.state;
+          const result = (answer && answer.result) || {};
+          if (result.ok) {
+            toast(t("barkTestOk"));
+          } else {
+            const detail = result.error || result.skipped || `status ${result.status}`;
+            toast(`${t("barkTestFailed")}: ${detail}`);
+          }
+          render();
+        } catch (error) {
+          toast(`${t("barkTestFailed")}: ${error && error.message ? error.message : String(error)}`);
+        }
+      }
+
+      async function reset() {
+        state = await invoke("igniter.reset");
+        fillForm();
+        render();
+      }
+
+      $("save").addEventListener("click", () => void save());
+      $("fire").addEventListener("click", () => void fireNow());
+      $("barkTest").addEventListener("click", () => void testBark());
+      $("reset").addEventListener("click", () => void reset());
+      const savedOnChange = [
+        "enabled", "startHour", "endHour", "intervalMinutes", "delaySeconds",
+        "barkUrl", "modelKey", "notifyOnCircuit",
+        "quietEnabled", "quietStartHour", "quietEndHour",
+      ];
+      for (const id of savedOnChange) {
+        $(id).addEventListener("change", () => void save());
+      }
+
+      window.pluginBridge.on("appearance:changed", applyAppearance);
+      Promise.resolve(window.pluginBridge.invoke("app.getAppearance"))
+        .then(applyAppearance)
+        .catch(() => applyAppearance(null));
+
+      void (async () => {
+        await refresh(true);
+        setInterval(() => {
+          if (!document.hidden && !busy) void refresh(false).catch(() => {});
+        }, 5000);
+      })().catch((error) => {
+        $("pill").textContent = String(error && error.message ? error.message : error);
+        $("pill").className = "pill bad";
+      });
+    </script>
+  </body>
+</html>
